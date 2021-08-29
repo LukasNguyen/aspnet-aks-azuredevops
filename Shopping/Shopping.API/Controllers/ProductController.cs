@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Shopping.API.Data;
 using Shopping.API.Models;
 using System;
@@ -17,17 +18,23 @@ namespace Shopping.API.Controllers
     public class ProductController : ControllerBase
     {
         private readonly ILogger<ProductController> logger;
+        private readonly ProductContext productContext;
 
-        public ProductController(ILogger<ProductController> logger)
+        public ProductController(ILogger<ProductController> logger, ProductContext productContext)
         {
             this.logger = logger;
+            this.productContext = productContext;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Product>))]
-        public ActionResult<IEnumerable<Product>> Get()
+        public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            return Ok(ProductContext.Products);
+            var products = await productContext.Products
+                .Find(x => true)
+                .ToListAsync();
+
+            return base.Ok(products);
         }
     }
 }
